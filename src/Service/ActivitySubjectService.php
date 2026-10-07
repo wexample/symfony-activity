@@ -4,6 +4,8 @@ namespace Wexample\SymfonyActivity\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
+use Stringable;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Wexample\SymfonyActivity\Class\ActivitySubject;
 use Wexample\SymfonyActivity\Interface\ActivitySubjectInterface;
 
@@ -50,5 +52,29 @@ class ActivitySubjectService
             $metadata->getName(),
             implode('-', $metadata->getIdentifierValues($subject))
         );
+    }
+
+    /**
+     * What a screen calls the subject $type $id: the entity it names, when it
+     * still exists, by its own words — a string, a user identifier —, its
+     * short type and id otherwise. Null id: anonymized, its short type alone.
+     */
+    public function label(string $type, ?string $id): string
+    {
+        $short = substr(strrchr('\\'.$type, '\\'), 1);
+
+        if ($id === null) {
+            return $short;
+        }
+
+        $entity = class_exists($type) && ! $this->entityManager->getMetadataFactory()->isTransient($type)
+            ? $this->entityManager->find($type, $id)
+            : null;
+
+        return match (true) {
+            $entity instanceof Stringable => (string) $entity,
+            $entity instanceof UserInterface => $entity->getUserIdentifier(),
+            default => $short.' #'.$id,
+        };
     }
 }

@@ -2,17 +2,6 @@ framework:
   session:
     storage_factory_id: session.storage.factory.mock_file
 
-security:
-  providers:
-    members:
-      entity:
-        class: Wexample\SymfonyActivity\Tests\Fixtures\App\Entity\Member
-        property: email
-  firewalls:
-    main:
-      lazy: true
-      provider: members
-
 wexample_symfony_activity:
   categories:
     page:

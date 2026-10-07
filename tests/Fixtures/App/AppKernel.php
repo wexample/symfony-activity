@@ -2,6 +2,8 @@
 
 namespace Wexample\SymfonyActivity\Tests\Fixtures\App;
 
+use DH\AuditorBundle\DHAuditorBundle;
+use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Wexample\SymfonyActivity\WexampleSymfonyActivityBundle;
 use Wexample\SymfonyTesting\Tests\Fixtures\AbstractFixtureKernel;
 
@@ -14,7 +16,11 @@ class AppKernel extends AbstractFixtureKernel
 
     protected function getExtraBundles(): iterable
     {
-        return [new WexampleSymfonyActivityBundle()];
+        return [
+            new SecurityBundle(),
+            new DHAuditorBundle(),
+            new WexampleSymfonyActivityBundle(),
+        ];
     }
 
     protected function getConfigFiles(): array

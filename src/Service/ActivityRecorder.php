@@ -6,10 +6,12 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
+use LogicException;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 use Wexample\SymfonyActivity\Class\ActivitySubject;
 use Wexample\SymfonyActivity\Entity\Activity;
+use Wexample\SymfonyActivity\Enum\ActivityCategory;
 
 /**
  * Writes what happened to a subject, when its category is enabled — and
@@ -44,6 +46,10 @@ class ActivityRecorder
         array $context = [],
         ?object $actor = null,
     ): void {
+        if ($category === ActivityCategory::CHANGE->value) {
+            throw new LogicException('The `change` category is auditor\'s: mark the entity #[Auditable] rather than recording its changes.');
+        }
+
         if (! $this->policy->isEnabled($category)) {
             return;
         }

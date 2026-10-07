@@ -7,7 +7,20 @@ doctrine:
         prefix: 'Wexample\SymfonyActivity\Tests\Fixtures\App\Entity'
         is_bundle: false
 
-# Two categories kept, each its own way; `page` and anything else, nothing.
+# Members sign in; what they change of a Contract is audited.
+security:
+  providers:
+    members:
+      entity:
+        class: Wexample\SymfonyActivity\Tests\Fixtures\App\Entity\Member
+        property: email
+  firewalls:
+    main:
+      lazy: true
+      provider: members
+
+# Two categories kept, each its own way, and the changes kept ninety days;
+# `page` and anything else, nothing.
 wexample_symfony_activity:
   categories:
     security:
@@ -17,6 +30,8 @@ wexample_symfony_activity:
       retention_days: 30
     billing:
       enabled: false
+    change:
+      retention_days: 90
 
 services:
   _defaults:
@@ -31,3 +46,7 @@ services:
     alias: Wexample\SymfonyActivity\Repository\ActivityRepository
   test.activity_subjects:
     alias: Wexample\SymfonyActivity\Service\ActivitySubjectService
+  test.activity_journal:
+    alias: Wexample\SymfonyActivity\Service\ActivityJournalService
+  test.token_storage:
+    alias: security.token_storage

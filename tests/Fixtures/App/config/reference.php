@@ -264,7 +264,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         formats?: array<string, Param|string|list<scalar|Param|null>>,
  *     },
  *     assets?: bool|array{ // Assets configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         strict_mode?: bool|Param, // Throw an exception if an entry is missing from the manifest.json. // Default: false
  *         version_strategy?: scalar|Param|null, // Default: null
  *         version?: scalar|Param|null, // Default: null
@@ -302,7 +302,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         },
  *     },
  *     translator?: bool|array{ // Translator configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         fallbacks?: Param|string|list<scalar|Param|null>,
  *         logging?: bool|Param, // Default: false
  *         formatter?: scalar|Param|null, // Default: "translator.formatter.default"
@@ -369,7 +369,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         }>,
  *     },
  *     property_access?: bool|array{ // Property access configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         magic_call?: bool|Param, // Default: false
  *         magic_get?: bool|Param, // Default: true
  *         magic_set?: bool|Param, // Default: true
@@ -377,11 +377,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         throw_exception_on_invalid_property_path?: bool|Param, // Default: true
  *     },
  *     type_info?: bool|array{ // Type info configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         aliases?: array<string, scalar|Param|null>,
  *     },
  *     property_info?: bool|array{ // Property info configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         with_constructor_extractor?: bool|Param, // Registers the constructor extractor.
  *     },
  *     cache?: array{ // Cache configuration
@@ -418,7 +418,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         enabled?: bool|Param, // Default: false
  *     },
  *     lock?: Param|bool|string|array{ // Lock configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         resources?: Param|string|array<string, Param|string|list<scalar|Param|null>>,
  *     },
  *     semaphore?: Param|bool|string|array{ // Semaphore configuration
@@ -959,13 +959,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         html_to_text_converter?: scalar|Param|null, // A service implementing the "Symfony\Component\Mime\HtmlToTextConverter\HtmlToTextConverterInterface". // Default: null
  *     },
  * }
- * @psalm-type WexampleSymfonyActivityConfig = array{
- *     categories?: array<string, array{ // Default: []
- *         enabled?: bool|Param, // Default: true
- *         retention_days?: int|Param, // Days an entry is kept, then purged by `activity:purge`. Unset, kept for good — the default: what to forget, and when, is a rule of the market the application serves, not of the package. // Default: null
- *         on_expiry?: "delete"|"anonymize"|Param, // delete: the entry is removed; anonymize: it stays, counted, with neither subject, actor nor context. // Default: "delete"
- *     }>,
- * }
  * @psalm-type SecurityConfig = array{
  *     access_denied_url?: scalar|Param|null, // Default: null
  *     session_fixation_strategy?: "none"|"migrate"|"invalidate"|Param, // Default: "migrate"
@@ -1274,6 +1267,21 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     }>,
  *     role_hierarchy?: array<string, Param|string|list<scalar|Param|null>>,
  * }
+ * @psalm-type DhAuditorConfig = array{
+ *     enabled?: bool|Param, // Default: true
+ *     timezone?: scalar|Param|null, // Default: "UTC"
+ *     user_provider?: scalar|Param|null, // Default: "dh_auditor.user_provider"
+ *     security_provider?: scalar|Param|null, // Default: "dh_auditor.security_provider"
+ *     role_checker?: scalar|Param|null, // Default: "dh_auditor.role_checker"
+ *     providers?: array<string, mixed>,
+ * }
+ * @psalm-type WexampleSymfonyActivityConfig = array{
+ *     categories?: array<string, array{ // Default: []
+ *         enabled?: bool|Param, // Default: true
+ *         retention_days?: int|Param, // Days an entry is kept, then purged by `activity:purge`. Unset, kept for good — the default: what to forget, and when, is a rule of the market the application serves, not of the package. // Default: null
+ *         on_expiry?: "delete"|"anonymize"|Param, // delete: the entry is removed; anonymize: it stays, counted, with neither subject, actor nor context. // Default: "delete"
+ *     }>,
+ * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -1281,8 +1289,9 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     framework?: FrameworkConfig,
  *     doctrine?: DoctrineConfig,
  *     twig?: TwigConfig,
- *     wexample_symfony_activity?: WexampleSymfonyActivityConfig,
  *     security?: SecurityConfig,
+ *     dh_auditor?: DhAuditorConfig,
+ *     wexample_symfony_activity?: WexampleSymfonyActivityConfig,
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,

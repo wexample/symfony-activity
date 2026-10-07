@@ -30,7 +30,8 @@
     "wexample/symfony-helpers": ">=15.0.0",
     "symfony/doctrine-bridge": "^7.4 || ^8.0",
     "symfony/uid": "^7.4 || ^8.0",
-    "symfony/event-dispatcher": "^7.4 || ^8.0"
+    "symfony/event-dispatcher": "^7.4 || ^8.0",
+    "damienharper/auditor-bundle": "^6.3"
   },
   "require-dev": {
     "phpunit/phpunit": "^13",
@@ -51,8 +52,5 @@
     "install": {
       "bundle_env": "all"
     }
-  },
-  "suggest": {
-    "symfony/security-bundle": "PageViewSubscriber reads the signed-in user through it: without it, no page is recorded"
   }
 }

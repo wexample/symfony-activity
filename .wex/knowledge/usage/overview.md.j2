@@ -1,6 +1,9 @@
 ## What it keeps
 
-What happens to a subject — a user, an organization, anything with an id — kept as its history: one `Entity\Activity` row per fact, with its category, a stable type code (`security.login.succeeded`, `support.contacted`), a JSON context, who did it when it was someone else, and the UTC time.
+The suite's one logging bundle: everything logged about an application is recorded and read here.
+
+- **Events** — what happens to a subject, a user, an organization, anything with an id: one `Entity\Activity` row per fact, with its category, a stable type code (`security.login.succeeded`, `support.contacted`), a JSON context, who did it when it was someone else, and the UTC time.
+- **Field changes** — who changed which field of an entity, when, old → new: recorded by `damienharper/auditor-bundle`, a dependency of the package, for the entities marked `#[Auditable]`, in its own `<table>_audit` tables. They read as entries of the `change` category.
 
 Nothing is kept until the application says so. A category it did not declare, or declared disabled, records nothing, and a call stays harmless in the code of a package whatever the application decided:
 
@@ -44,10 +47,40 @@ Keep the context to what the entry needs to be read later: no secret, and as lit
 - `security` — symfony-user, where it is installed: every `SecurityEvent` naming an account becomes an entry of its history, `security.<type>` with the method, the cause of a failure, the IP and the user agent. The login history of an account is this category of it.
 - `page` — `EventSubscriber\PageViewSubscriber`: each page a signed-in user reads, as `page.viewed` with its route and its path without the query. A page is a GET answered with HTML, not under `/_`, not an error. A user that is neither an entity nor an `ActivitySubjectInterface` is skipped. The heaviest category by far: give it a short retention.
 - `mail` — reserved for the mails sent to a subject.
+- `change` — the field changes, below. Never recorded by hand: `record()` refuses it.
+
+## Field changes
+
+An entity is audited by its mark, and by nothing else:
+
+```php
+use DH\Auditor\Provider\Doctrine\Auditing\Annotation\Auditable;
+
+#[ORM\Entity]
+#[Auditable]
+class Parameter extends AbstractEntity
+```
+
+Each insert, update, removal and relation added or removed is then kept with the fields it touched, the signed-in user who made it and their address — auditor's work, configured by the package: UTC, and the author named by the id symfony-activity names an actor with, so that the journal finds what someone did in both. `#[Ignore]` on a field leaves it out. Marking an entity adds its audit table: a migration.
+
+Read with the rest, a change is an entry of the `change` category, typed `change.insert`, `change.update`, `change.remove`, `change.associate` or `change.dissociate`, its fields in `getChanges()` as `{ field, old, new }`, each value worded — a related entity by its label, a JSON field key by key. Its author is known by id only: the id of a signed-in user.
+
+`categories.change` sets their retention like any category's; `on_expiry: anonymize` empties the author and the address, the change itself is kept. auditor's own viewer is left off: symfony-activity-ds shows the changes with the events.
 
 ## Reading
 
-`Repository\ActivityRepository` reads a history newest first: `createSubjectQuery()` to build on, `findRecent()` for the last few, `paginate()` for a list a page at a time, `findSubjectCategories()` for its filter. symfony-activity-ds draws them: `partials/recent.html.twig` as a timeline, `partials/table.html.twig` as a paged table.
+`Service\ActivityJournalService` reads everything as one journal, newest first: the events and the changes, merged by one SQL union and paged by the database. A `Class\ActivityJournalFilter` narrows it — a subject, a category, a type, an actor, a period:
+
+```php
+$journal->paginate(new ActivityJournalFilter(category: 'change', from: $monday), $page, 50);
+$journal->findRecent(new ActivityJournalFilter(actor: $subjects->of($user)), 10);
+```
+
+The actor is who did it: the actor of an event, or its subject when it names none, and the author of a change. `findCategories()` and `findTypes()` give what a filter offers, `count()` how many there are. Each entry is a `Class\ActivityEntry`, answering to the getters of an `Activity`, plus `getChanges()` and, on a page, `getSubjectLabel()` and `getActorLabel()` — the entity's own string, a user's identifier, its short type and id otherwise.
+
+Time is kept to the second in both tables: within one second, the changes come before the events, in a fixed order.
+
+`Repository\ActivityRepository` reads the history of one subject through it: `findRecent()`, `paginate()`, `findSubjectCategories()`. symfony-activity-ds draws them: `partials/recent.html.twig` as a timeline, `partials/table.html.twig` as a paged table, and the journal page.
 
 ## Forgetting
 
@@ -55,9 +88,11 @@ Keep the context to what the entry needs to be read later: no secret, and as lit
 
 `ActivitySubjectDataService` answers what a person may ask where the law gives them the right to, and only when the application calls it:
 
-- `export($subject)`: every entry of the subject, oldest first, as plain arrays;
-- `erase($subject)`: removes its history, and takes its name off the entries it wrote about others — those stay theirs.
+- `export($subject)`: every entry of its history and of what it did elsewhere, oldest first, as plain arrays — the events and the changes, `by_someone_else` on its own history when another did it, `about_someone_else` naming the type of what an entry elsewhere was about, never whom;
+- `erase($subject)`: removes its history — events and changes made to it —, and takes its name off what it did elsewhere: those entries stay, by nobody.
+
+A change knows its author by id, so the changes someone made are only found for a subject that signs in — a Symfony security user.
 
 ## Schema
 
-The bundle maps `Entity\Activity` to an `activity` table, indexed by subject and by category, each with the time. An application adding the package generates a migration for it.
+The bundle maps `Entity\Activity` to an `activity` table, indexed by subject and by category, each with the time; auditor adds a `<table>_audit` table per entity marked `#[Auditable]`, on the same connection. An application generates a migration after adding the package, and again after marking an entity.

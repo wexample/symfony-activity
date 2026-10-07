@@ -16,4 +16,12 @@ enum ActivityCategory: string
 
     /** A mail sent to the subject. */
     case MAIL = 'mail';
+
+    /**
+     * A field changed on an entity marked `#[Auditable]`, recorded by
+     * auditor-bundle in its own tables and read here with the rest. Declaring
+     * it in `categories` only sets its retention: what is recorded is what the
+     * entities ask for.
+     */
+    case CHANGE = 'change';
 }

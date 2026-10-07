@@ -6,9 +6,10 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use LogicException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Wexample\SymfonyActivity\Class\ActivityEntry;
 use Wexample\SymfonyActivity\Class\ActivitySubject;
-use Wexample\SymfonyActivity\Entity\Activity;
 use Wexample\SymfonyActivity\Interface\ActivitySubjectInterface;
 use Wexample\SymfonyActivity\Repository\ActivityRepository;
 use Wexample\SymfonyActivity\Service\ActivityRecorder;
@@ -108,7 +109,7 @@ class ActivityTest extends KernelTestCase
         $purged = self::getContainer()->get('test.activity_purge')
             ->purge(new DateTimeImmutable('+400 days', new DateTimeZone('UTC')));
 
-        $this->assertSame(['security' => 1, 'support' => 1], $purged);
+        $this->assertSame(['security' => 1, 'support' => 1, 'change' => 0], $purged);
         $this->assertSame([], $this->history($customer));
 
         $this->entityManager->clear();
@@ -126,7 +127,7 @@ class ActivityTest extends KernelTestCase
         $purged = self::getContainer()->get('test.activity_purge')
             ->purge(new DateTimeImmutable('+10 days', new DateTimeZone('UTC')));
 
-        $this->assertSame(['security' => 0, 'support' => 0], $purged);
+        $this->assertSame(['security' => 0, 'support' => 0, 'change' => 0], $purged);
         $this->assertCount(1, $this->history($customer));
     }
 
@@ -141,10 +142,13 @@ class ActivityTest extends KernelTestCase
 
         $data = self::getContainer()->get('test.activity_subject_data');
 
+        $export = $data->export($customer);
         $this->assertSame(
-            ['support.contacted', 'security.login.succeeded'],
-            array_column($data->export($customer), 'type')
+            ['support.contacted', 'security.login.succeeded', 'support.answered'],
+            array_column($export, 'type')
         );
+        // What it did to someone else names what it was about, not whom.
+        $this->assertSame([null, null, Customer::class], array_column($export, 'about_someone_else'));
 
         $this->assertSame(2, $data->erase($customer));
         $this->assertSame([], $this->history($customer));
@@ -153,8 +157,15 @@ class ActivityTest extends KernelTestCase
         $this->assertNull($kept->getActorId());
     }
 
+    public function testTheChangeCategoryIsNotRecordedByHand(): void
+    {
+        $this->expectException(LogicException::class);
+
+        $this->recorder->record($this->createCustomer(), 'change', 'change.update');
+    }
+
     /**
-     * @return list<Activity>
+     * @return list<ActivityEntry>
      */
     private function history(object $subject): array
     {
