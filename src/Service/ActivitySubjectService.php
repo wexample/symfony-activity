@@ -2,6 +2,7 @@
 
 namespace Wexample\SymfonyActivity\Service;
 
+use Doctrine\DBAL\Types\ConversionException;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 use Stringable;
@@ -67,9 +68,16 @@ class ActivitySubjectService
             return $short;
         }
 
-        $entity = class_exists($type) && ! $this->entityManager->getMetadataFactory()->isTransient($type)
-            ? $this->entityManager->find($type, $id)
-            : null;
+        $entity = null;
+
+        if (class_exists($type) && ! $this->entityManager->getMetadataFactory()->isTransient($type)) {
+            try {
+                $entity = $this->entityManager->find($type, $id);
+            } catch (ConversionException) {
+                // An id the entity's type cannot hold — one typed in an
+                // address — names nothing.
+            }
+        }
 
         return match (true) {
             $entity instanceof Stringable => (string) $entity,
