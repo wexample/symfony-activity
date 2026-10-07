@@ -1,0 +1,29 @@
+## Installation
+
+```bash
+composer require wexample/symfony-activity
+```
+
+```php
+// config/bundles.php
+Wexample\SymfonyActivity\WexampleSymfonyActivityBundle::class => ['all' => true],
+```
+
+The bundle maps its `activity` table: generate a migration for it.
+
+Nothing is recorded until categories are declared — see the usage page:
+
+```yaml
+# config/packages/wexample_symfony_activity.yaml
+wexample_symfony_activity:
+    categories:
+        security: ~
+```
+
+Where a category has a retention, schedule the purge once a day:
+
+```bash
+bin/console activity:purge
+```
+
+`symfony/security-bundle` is what `PageViewSubscriber` reads the signed-in user through: without it, no page is recorded. symfony-user writes its security facts here by itself once both bundles are enabled; symfony-activity-ds draws the history.

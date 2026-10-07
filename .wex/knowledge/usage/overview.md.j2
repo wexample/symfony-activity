@@ -1,0 +1,63 @@
+## What it keeps
+
+What happens to a subject — a user, an organization, anything with an id — kept as its history: one `Entity\Activity` row per fact, with its category, a stable type code (`security.login.succeeded`, `support.contacted`), a JSON context, who did it when it was someone else, and the UTC time.
+
+Nothing is kept until the application says so. A category it did not declare, or declared disabled, records nothing, and a call stays harmless in the code of a package whatever the application decided:
+
+```yaml
+# config/packages/wexample_symfony_activity.yaml
+wexample_symfony_activity:
+    categories:
+        security: ~                 # kept for good
+        page:
+            retention_days: 7       # then deleted by activity:purge
+        support:
+            retention_days: 1095
+            on_expiry: anonymize    # then kept, counted, with neither subject, actor nor context
+        billing:
+            enabled: false          # declared, recording nothing
+```
+
+No retention is imposed, and no protection either: what to keep and when to forget it is a rule of the market an application serves. Each one is there to switch on — a retention per category, anonymizing rather than deleting, a copy and an erasure per person.
+
+## Recording
+
+```php
+$recorder->record($user, 'support', 'support.contacted', ['channel' => 'chat']);
+$recorder->record($account, 'support', 'support.answered', actor: $agent);
+
+if ($recorder->records('billing')) {
+    $recorder->record($customer, 'billing', 'billing.invoice_paid', $this->expensiveContext());
+}
+```
+
+A subject is named by its type and id: an entity by its mapped class and identifier, needing nothing; anything else by implementing `Interface\ActivitySubjectInterface`; a caller holding only an id builds a `Class\ActivitySubject` itself. `ActivitySubjectService::supports()` says whether an object can have a history at all.
+
+The row is inserted through the connection, not persisted: an entry is often written from inside someone else's unit of work, and a flush would carry along whatever the caller has pending.
+
+Keep the context to what the entry needs to be read later: no secret, and as little about people as the application can do with — the less it holds, the less there is to anonymize, export or erase.
+
+## The suite's own categories
+
+`Enum\ActivityCategory` names them:
+
+- `security` — symfony-user, where it is installed: every `SecurityEvent` naming an account becomes an entry of its history, `security.<type>` with the method, the cause of a failure, the IP and the user agent. The login history of an account is this category of it.
+- `page` — `EventSubscriber\PageViewSubscriber`: each page a signed-in user reads, as `page.viewed` with its route and its path without the query. A page is a GET answered with HTML, not under `/_`, not an error. A user that is neither an entity nor an `ActivitySubjectInterface` is skipped. The heaviest category by far: give it a short retention.
+- `mail` — reserved for the mails sent to a subject.
+
+## Reading
+
+`Repository\ActivityRepository` reads a history newest first: `createSubjectQuery()` to build on, `findRecent()` for the last few, `paginate()` for a list a page at a time, `findSubjectCategories()` for its filter. symfony-activity-ds draws them: `partials/recent.html.twig` as a timeline, `partials/table.html.twig` as a paged table.
+
+## Forgetting
+
+`bin/console activity:purge` applies the retention of every category: past it, an entry is deleted or anonymized as its `on_expiry` says. Schedule it once a day; a category without retention keeps everything.
+
+`ActivitySubjectDataService` answers what a person may ask where the law gives them the right to, and only when the application calls it:
+
+- `export($subject)`: every entry of the subject, oldest first, as plain arrays;
+- `erase($subject)`: removes its history, and takes its name off the entries it wrote about others — those stay theirs.
+
+## Schema
+
+The bundle maps `Entity\Activity` to an `activity` table, indexed by subject and by category, each with the time. An application adding the package generates a migration for it.

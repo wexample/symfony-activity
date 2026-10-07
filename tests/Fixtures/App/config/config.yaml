@@ -1,0 +1,33 @@
+doctrine:
+  orm:
+    mappings:
+      FixtureApp:
+        type: attribute
+        dir: '%kernel.project_dir%/Entity'
+        prefix: 'Wexample\SymfonyActivity\Tests\Fixtures\App\Entity'
+        is_bundle: false
+
+# Two categories kept, each its own way; `page` and anything else, nothing.
+wexample_symfony_activity:
+  categories:
+    security:
+      retention_days: 365
+      on_expiry: anonymize
+    support:
+      retention_days: 30
+    billing:
+      enabled: false
+
+services:
+  _defaults:
+    public: true
+  test.activity_recorder:
+    alias: Wexample\SymfonyActivity\Service\ActivityRecorder
+  test.activity_purge:
+    alias: Wexample\SymfonyActivity\Service\ActivityPurgeService
+  test.activity_subject_data:
+    alias: Wexample\SymfonyActivity\Service\ActivitySubjectDataService
+  test.activity_repository:
+    alias: Wexample\SymfonyActivity\Repository\ActivityRepository
+  test.activity_subjects:
+    alias: Wexample\SymfonyActivity\Service\ActivitySubjectService
