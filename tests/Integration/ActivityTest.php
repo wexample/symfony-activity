@@ -51,6 +51,18 @@ class ActivityTest extends KernelTestCase
         $this->assertSame('UTC', $entry->getOccurredAt()->getTimezone()->getName());
     }
 
+    public function testALazyLoadedEntityIsRecordedAsItsClass(): void
+    {
+        $id = $this->createCustomer()->getId();
+        $this->entityManager->clear();
+        $proxy = $this->entityManager->getReference(Customer::class, $id);
+
+        $this->recorder->record($proxy, 'support', 'support.contacted');
+
+        [$entry] = $this->history($proxy);
+        $this->assertSame(Customer::class, $entry->getSubjectType());
+    }
+
     public function testNothingIsKeptOfACategoryTheApplicationDidNotAskFor(): void
     {
         $customer = $this->createCustomer();

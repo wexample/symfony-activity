@@ -4,6 +4,7 @@ namespace Wexample\SymfonyActivity\Service;
 
 use Doctrine\DBAL\Types\ConversionException;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\Proxy;
 use LogicException;
 use Stringable;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -30,7 +31,7 @@ class ActivitySubjectService
     {
         return $subject instanceof ActivitySubject
             || $subject instanceof ActivitySubjectInterface
-            || ! $this->entityManager->getMetadataFactory()->isTransient($subject::class);
+            || ! $this->entityManager->getMetadataFactory()->isTransient($this->getEntityClass($subject));
     }
 
     public function of(object $subject): ActivitySubject
@@ -43,11 +44,13 @@ class ActivitySubjectService
             return new ActivitySubject($subject->getActivitySubjectType(), $subject->getActivitySubjectId());
         }
 
-        if ($this->entityManager->getMetadataFactory()->isTransient($subject::class)) {
-            throw new LogicException(sprintf('%s is neither an entity nor an %s: there is no telling whose history it is.', $subject::class, ActivitySubjectInterface::class));
+        $class = $this->getEntityClass($subject);
+
+        if ($this->entityManager->getMetadataFactory()->isTransient($class)) {
+            throw new LogicException(sprintf('%s is neither an entity nor an %s: there is no telling whose history it is.', $class, ActivitySubjectInterface::class));
         }
 
-        $metadata = $this->entityManager->getClassMetadata($subject::class);
+        $metadata = $this->entityManager->getClassMetadata($class);
 
         return new ActivitySubject(
             $metadata->getName(),
@@ -84,5 +87,14 @@ class ActivitySubjectService
             $entity instanceof UserInterface => $entity->getUserIdentifier(),
             default => $short.' #'.$id,
         };
+    }
+
+    /**
+     * The class an entity is mapped as: a lazy-loaded one is a Doctrine
+     * proxy, which no mapping knows.
+     */
+    private function getEntityClass(object $subject): string
+    {
+        return $subject instanceof Proxy ? get_parent_class($subject) : $subject::class;
     }
 }
