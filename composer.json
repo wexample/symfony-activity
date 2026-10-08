@@ -1,7 +1,7 @@
 {
   "name": "wexample/symfony-activity",
   "description": "What happens to a subject — a user, an organization — kept as a history, recorded by category, each category enabled, kept and purged as the application decides",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "type": "library",
   "license": "MIT",
   "autoload": {
@@ -29,7 +29,7 @@
     "symfony/routing": "^7.4 || ^8.0",
     "symfony/security-core": "^7.4 || ^8.0",
     "wexample/symfony-helpers": ">=15.0.0",
-    "wexample/symfony-security": ">=2.0.0",
+    "wexample/symfony-security": ">=2.1.0",
     "symfony/doctrine-bridge": "^7.4 || ^8.0",
     "symfony/uid": "^7.4 || ^8.0",
     "symfony/event-dispatcher": "^7.4 || ^8.0",

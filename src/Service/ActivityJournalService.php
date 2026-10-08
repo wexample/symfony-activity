@@ -191,7 +191,7 @@ class ActivityJournalService
     {
         $metadata = $this->entityManager->getClassMetadata(Activity::class);
         $column = static fn (string $field) => 'a.'.$metadata->getColumnName($field);
-                $where = [];
+        $where = [];
 
         if ($filter->subject) {
             $where[] = $column('subjectType').' = :a_subject_type AND '.$column('subjectId').' = :a_subject_id';

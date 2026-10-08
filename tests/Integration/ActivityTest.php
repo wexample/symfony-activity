@@ -81,7 +81,7 @@ class ActivityTest extends KernelTestCase
 
     public function testASubjectThatIsNoEntityNamesItself(): void
     {
-        $subject = new class implements ActivitySubjectInterface {
+        $subject = new class () implements ActivitySubjectInterface {
             public function getActivitySubjectType(): string
             {
                 return 'stripe_customer';
