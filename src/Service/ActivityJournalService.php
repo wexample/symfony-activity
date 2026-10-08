@@ -231,6 +231,8 @@ class ActivityJournalService
             'CAST(NULL AS TEXT) AS actor_name',
             'CAST('.$column('context').' AS TEXT) AS payload',
             $column('occurredAt').' AS occurred_at',
+            $column('occurrences').' AS occurrences',
+            $column('lastOccurredAt').' AS last_occurred_at',
         ]).' FROM '.$metadata->getTableName().' a'.$this->whereClause($where);
     }
 
@@ -278,6 +280,8 @@ class ActivityJournalService
             $alias.'.blame_user AS actor_name',
             'CAST('.$alias.'.diffs AS TEXT) AS payload',
             $alias.'.created_at AS occurred_at',
+            'CAST(1 AS INTEGER) AS occurrences',
+            'CAST(NULL AS TIMESTAMP) AS last_occurred_at',
         ]).' FROM '.$table.' '.$alias.$this->whereClause($where);
     }
 
@@ -329,6 +333,10 @@ class ActivityJournalService
                 $row['actor_id'],
                 $payload,
                 $occurredAt,
+                occurrences: (int) $row['occurrences'],
+                lastOccurredAt: $row['last_occurred_at'] !== null
+                    ? new DateTimeImmutable($row['last_occurred_at'], new DateTimeZone('UTC'))
+                    : null,
             );
         }
 

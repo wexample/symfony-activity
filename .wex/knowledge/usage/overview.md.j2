@@ -19,6 +19,9 @@ wexample_symfony_activity:
             on_expiry: anonymize    # then kept, counted, with neither subject, actor nor context
         billing:
             enabled: false          # declared, recording nothing
+        server:
+            retention_days: 90
+            merge_within: 1 hour    # a repeat within the hour counts on the first entry
 ```
 
 No retention is imposed, and no protection either: what to keep and when to forget it is a rule of the market an application serves. Each one is there to switch on — a retention per category, anonymizing rather than deleting, a copy and an erasure per person.
@@ -48,6 +51,38 @@ Keep the context to what the entry needs to be read later: no secret, and as lit
 - `page` — `EventSubscriber\PageViewSubscriber`: each page a signed-in user reads, as `page.viewed` with its route and its path without the query. A page is a GET answered with HTML, not under `/_`, not an error. A user that is neither an entity nor an `ActivitySubjectInterface` is skipped. The heaviest category by far: give it a short retention.
 - `mail` — reserved for the mails sent to a subject.
 - `change` — the field changes, below. Never recorded by hand: `record()` refuses it.
+- `server` — `EventSubscriber\ServerErrorActivitySubscriber`: each request the server could not answer, a 5xx, as `server.error` with the exception's class, message, file and line, the route and the request id. The log file keeps them too: when the database is what failed, the log is where it is told.
+- `client` and `ui` — what browsers report, below.
+
+`security` also receives `security.rate_limit.exceeded`, each request a `#[RateLimit]` refused, and `security.activity_report.refused`, the reported entries refused and why.
+
+## Whose history
+
+What a request does is recorded against `ActivityVisitorService::current()`: the signed-in user, when the package can name them; otherwise a `visitor`, named by a keyed hash of their session — of their address and browser when they have none. Nothing goes unrecorded for want of someone signed in, and the id gives nobody back.
+
+## Repeats
+
+A category with `merge_within` counts a repeat instead of writing it: an entry of the same subject and fingerprint whose last occurrence is within the interval takes it, `getOccurrences()` then saying how many times and `getLastOccurredAt()` when last. The fingerprint is the caller's, a hash of what makes two entries the same:
+
+```php
+$recorder->record($subject, 'server', 'server.error', $context, fingerprint: hash('sha256', $class.'|'.$file.'|'.$line));
+```
+
+Without `merge_within`, or without a fingerprint, every entry is written.
+
+## Browsers reporting
+
+`POST /_activity/report` takes what a browser reports, a batch of `{ category, type, context, fingerprint }` — symfony-activity-ds sends its errors and what its interface tells. Only the categories in `client_categories` are accepted, and recorded only when enabled:
+
+```yaml
+wexample_symfony_activity:
+    client_categories: [client, ui]
+    categories:
+        client: { retention_days: 30, merge_within: 1 hour }
+        ui: { retention_days: 30 }
+```
+
+Anyone may post there, so it is bounded: JSON only, which another site's page cannot send without asking first; 20 entries a batch; a type in dotted lowercase, a flat context of at most 30 scalars, strings cut at 1000 characters, a hexadecimal fingerprint; 60 batches a minute per address. What is refused is counted in `security`, never dropped unseen. Each answer lists, in `X-Activity-Categories`, the categories still recorded, so that a browser stops sending the rest.
 
 ## Field changes
 

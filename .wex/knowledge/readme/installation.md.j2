@@ -7,6 +7,7 @@ composer require wexample/symfony-activity
 ```php
 // config/bundles.php
 DH\AuditorBundle\DHAuditorBundle::class => ['all' => true],
+Wexample\SymfonySecurity\WexampleSymfonySecurityBundle::class => ['all' => true],
 Wexample\SymfonyActivity\WexampleSymfonyActivityBundle::class => ['all' => true],
 ```
 
@@ -33,5 +34,7 @@ Where a category has a retention, schedule the purge once a day:
 ```bash
 bin/console activity:purge
 ```
+
+symfony-security comes with the package: its `#[RateLimit]` guards the endpoint browsers report to, and what it refuses is recorded here.
 
 symfony-user writes its security facts here by itself once both bundles are enabled; symfony-activity-ds draws the history and the journal.

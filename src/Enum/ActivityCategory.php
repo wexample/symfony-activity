@@ -24,4 +24,13 @@ enum ActivityCategory: string
      * entities ask for.
      */
     case CHANGE = 'change';
+
+    /** An error the server could not answer through: a 5xx — ServerErrorActivitySubscriber. */
+    case SERVER = 'server';
+
+    /** An error in the browser, reported by symfony-activity-ds. */
+    case CLIENT = 'client';
+
+    /** What the interface tells of its use — a form left unsent —, reported by symfony-activity-ds. */
+    case UI = 'ui';
 }

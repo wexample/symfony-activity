@@ -13,7 +13,7 @@ use Wexample\SymfonyActivity\Enum\ActivityExpiry;
 class ActivityPolicyService
 {
     /**
-     * @param array<string, array{enabled: bool, retention_days: ?int, on_expiry: string}> $categories
+     * @param array<string, array{enabled: bool, retention_days: ?int, merge_within: ?string, on_expiry: string}> $categories
      */
     public function __construct(
         #[Autowire(param: 'wexample_symfony_activity.categories')]
@@ -32,6 +32,15 @@ class ActivityPolicyService
     public function getRetentionDays(string $category): ?int
     {
         return $this->categories[$category]['retention_days'] ?? null;
+    }
+
+    /**
+     * The interval within which a repeat of $category is counted rather than
+     * written, or null when every entry is written.
+     */
+    public function getMergeWithin(string $category): ?string
+    {
+        return $this->categories[$category]['merge_within'] ?? null;
     }
 
     public function getExpiry(string $category): ActivityExpiry

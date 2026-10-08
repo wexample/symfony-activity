@@ -1,0 +1,18 @@
+# `client` and `ui` open to browsers, `ui` left disabled; repeats merged
+# within an hour wherever a fingerprint says what repeats.
+wexample_symfony_activity:
+  categories:
+    security:
+      merge_within: 1 hour
+    server:
+      merge_within: 1 hour
+    client:
+      merge_within: 1 hour
+    ui:
+      enabled: false
+  client_categories: [client, ui]
+
+services:
+  Wexample\SymfonyActivity\Tests\Fixtures\App\ReportController\:
+    resource: '../ReportController/'
+    tags: ['controller.service_arguments']

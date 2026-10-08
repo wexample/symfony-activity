@@ -45,6 +45,7 @@ class WexampleSymfonyActivityExtension extends AbstractWexampleSymfonyExtension
         $config = $this->processConfiguration(new Configuration(), $configs);
 
         $container->setParameter('wexample_symfony_activity.categories', $config['categories']);
+        $container->setParameter('wexample_symfony_activity.client_categories', $config['client_categories']);
 
         $this->loadConfig(
             __DIR__,

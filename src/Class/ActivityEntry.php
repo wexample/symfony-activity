@@ -32,6 +32,8 @@ final readonly class ActivityEntry
         private array $changes = [],
         private ?string $subjectLabel = null,
         private ?string $actorLabel = null,
+        private int $occurrences = 1,
+        private ?DateTimeImmutable $lastOccurredAt = null,
     ) {
     }
 
@@ -125,6 +127,24 @@ final readonly class ActivityEntry
             $this->changes,
             $subjectLabel,
             $actorLabel,
+            $this->occurrences,
+            $this->lastOccurredAt,
         );
+    }
+
+    /**
+     * 1, or how many times a merged entry happened.
+     */
+    public function getOccurrences(): int
+    {
+        return $this->occurrences;
+    }
+
+    /**
+     * UTC; the last repeat of a merged entry, null when there was none.
+     */
+    public function getLastOccurredAt(): ?DateTimeImmutable
+    {
+        return $this->lastOccurredAt;
     }
 }

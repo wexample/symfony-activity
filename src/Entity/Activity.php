@@ -21,6 +21,7 @@ use Wexample\SymfonyHelpers\Entity\AbstractEntity;
 #[ORM\Table(name: 'activity')]
 #[ORM\Index(name: 'activity_subject', columns: ['subject_type', 'subject_id', 'occurred_at'])]
 #[ORM\Index(name: 'activity_category', columns: ['category', 'occurred_at'])]
+#[ORM\Index(name: 'activity_fingerprint', columns: ['category', 'fingerprint'])]
 class Activity extends AbstractEntity
 {
     public const string TABLE = 'activity';
@@ -66,6 +67,26 @@ class Activity extends AbstractEntity
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private DateTimeImmutable $occurredAt;
 
+    /**
+     * What makes two entries the same, for a category merging its repeats
+     * (`merge_within`): an error's class and line, a refused limit's name.
+     */
+    #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
+    private ?string $fingerprint = null;
+
+    /**
+     * How many times it happened: a repeat within `merge_within` counts here
+     * instead of making a new entry.
+     */
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
+    private int $occurrences = 1;
+
+    /**
+     * UTC; the last repeat counted, null when there was none.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?DateTimeImmutable $lastOccurredAt = null;
+
     public function getSubjectType(): string
     {
         return $this->subjectType;
@@ -107,5 +128,20 @@ class Activity extends AbstractEntity
     public function getOccurredAt(): DateTimeImmutable
     {
         return $this->occurredAt;
+    }
+
+    public function getFingerprint(): ?string
+    {
+        return $this->fingerprint;
+    }
+
+    public function getOccurrences(): int
+    {
+        return $this->occurrences;
+    }
+
+    public function getLastOccurredAt(): ?DateTimeImmutable
+    {
+        return $this->lastOccurredAt;
     }
 }
