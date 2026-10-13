@@ -1,6 +1,6 @@
 # symfony-activity
 
-Version: 2.0.0
+Version: 3.0.0
 
 ## What it keeps
 
@@ -174,7 +174,7 @@ Visit the [Wexample Suite documentation](https://docs.wexample.com) for the comp
 - symfony/http-kernel: ^7.4 || ^8.0
 - symfony/routing: ^7.4 || ^8.0
 - symfony/security-core: ^7.4 || ^8.0
-- wexample/symfony-helpers: >=15.0.0
+- wexample/symfony-helpers: >=16.0.0
 - wexample/symfony-security: >=2.1.0
 - symfony/doctrine-bridge: ^7.4 || ^8.0
 - symfony/uid: ^7.4 || ^8.0
