@@ -1,7 +1,7 @@
 {
   "name": "wexample/symfony-activity",
   "description": "What happens to a subject — a user, an organization — kept as a history, recorded by category, each category enabled, kept and purged as the application decides",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "type": "library",
   "license": "MIT",
   "autoload": {
