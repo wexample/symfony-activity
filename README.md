@@ -1,6 +1,6 @@
 # symfony-activity
 
-Version: 3.0.3
+Version: 3.0.4
 
 ## What it keeps
 
@@ -172,7 +172,7 @@ The suite includes packages for configuration management, file handling, prompts
 - symfony/http-kernel: ^7.4 || ^8.0
 - symfony/routing: ^7.4 || ^8.0
 - symfony/security-core: ^7.4 || ^8.0
-- wexample/symfony-helpers: >=17.0.0
+- wexample/symfony-helpers: >=18.0.0
 - wexample/symfony-security: >=4.0.0
 - symfony/doctrine-bridge: ^7.4 || ^8.0
 - symfony/uid: ^7.4 || ^8.0
