@@ -1289,6 +1289,11 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         routes?: scalar|Param|null, // A regular expression the route name must match: "/^api_invoice_(emit|peppol_send)$/". // Default: null
  *         paths?: scalar|Param|null, // A regular expression the path must match, for what one route serves under many names: "#^/_forms/submit/form-password_reset_request_form$#". // Default: null
  *     }>,
+ *     proof_of_work?: array{ // The captcha a form carries with ProofOfWorkService: work the browser does before sending, checked by the server in one hash.
+ *         max_number?: int|Param, // The highest number the browser may have to try: half of it on average, a few hundred milliseconds at the default. // Default: 100000
+ *         lifetime?: int|Param, // Seconds a challenge stays valid once issued: the time to fill the form in. // Default: 3600
+ *         min_delay?: int|Param, // Seconds before a challenge may be sent back: a form filled in faster was filled in by a program. // Default: 3
+ *     },
  *     headers?: array{ // Security headers added to every main response that does not set them already; null leaves one out.
  *         strict_transport_security?: scalar|Param|null, // Sent over HTTPS only. Once a browser has read it, it refuses plain HTTP on the host for max-age seconds. // Default: "max-age=31536000; includeSubDomains"
  *         content_type_options?: scalar|Param|null, // Default: "nosniff"
