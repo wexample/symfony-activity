@@ -4,7 +4,7 @@ namespace Wexample\SymfonyActivity\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Wexample\SymfonyActivity\Enum\ActivityCategory;
@@ -17,6 +17,9 @@ use Wexample\SymfonyActivity\Service\ActivitySubjectService;
  * a GET answered with HTML, not under `/_` — where a program asks, not a
  * reader —, nor an error. The path is kept without its query, which carries
  * searches and, now and then, a token.
+ *
+ * Written once the response has left, as symfony-analytics counts its pages:
+ * the reader does not wait on the insert of their own history.
  *
  * The heaviest category by far: give it a short retention. A signed-in user
  * the package cannot name — neither an entity nor an ActivitySubjectInterface
@@ -35,10 +38,10 @@ class PageViewSubscriber implements EventSubscriberInterface
 
     public static function getSubscribedEvents(): array
     {
-        return [KernelEvents::RESPONSE => 'onResponse'];
+        return [KernelEvents::TERMINATE => 'onTerminate'];
     }
 
-    public function onResponse(ResponseEvent $event): void
+    public function onTerminate(TerminateEvent $event): void
     {
         if (! $event->isMainRequest() || ! $this->recorder->records(ActivityCategory::PAGE->value)) {
             return;
