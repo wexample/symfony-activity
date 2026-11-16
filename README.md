@@ -1,6 +1,6 @@
 # symfony-activity
 
-Version: 4.0.0
+Version: 5.0.0
 
 What happens to a subject — a user, an organization — kept as a history, recorded by category, each category enabled, kept and purged as the application decides
 
