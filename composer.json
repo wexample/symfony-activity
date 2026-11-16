@@ -52,7 +52,10 @@
   ],
   "extra": {
     "install": {
-      "bundle_env": "all"
+      "bundle_env": "all",
+      "bundles": {
+        "DH\\AuditorBundle\\DHAuditorBundle": "all"
+      }
     }
   }
 }
